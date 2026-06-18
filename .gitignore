@@ -1,0 +1,52 @@
+## Core dotnet Artifacts
+**/bin/
+**/obj/
+
+## Personal Visual Studio User Settings
+**/[Bb]in/
+**/[Oo]bj/
+*.user
+*.userosscache
+*.sln.docstates
+
+## Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/code-workspace
+.history/
+*.code-workspace
+
+## Rider / Resharper / JetBrains
+.idea/
+*.sln.iml
+
+## OS-generated files
+.DS_Store
+Thumbs.db
+
+## User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## Mono Auto Generated Files
+mono_crash.*
+
+## Nested environments / Secrets
+.env
+.env.*
+!.env.example
+secrets.json
+appsettings.Development.json
+
+## Rider
+*.idea/
+
+## Diagnostic & Crash Logs
+*.log
+*.crash
