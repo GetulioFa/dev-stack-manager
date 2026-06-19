@@ -30,6 +30,10 @@ builder.Services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AppDbContext
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
+// MediatR
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(
+    typeof(DevStackManager.Application.Users.Commands.RegisterUserCommand).Assembly));
+
 // JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey is not configured.");
