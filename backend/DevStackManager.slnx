@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="DevStackManager.Api/DevStackManager.Api.csproj" />
+  <Project Path="DevStackManager.Application/DevStackManager.Application.csproj" />
+  <Project Path="DevStackManager.Domain/DevStackManager.Domain.csproj" />
+  <Project Path="DevStackManager.Infrastructure/DevStackManager.Infrastructure.csproj" />
+  <Project Path="DevStackManager.Tests/DevStackManager.Tests.csproj" />
+</Solution>
