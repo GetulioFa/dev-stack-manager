@@ -53,3 +53,8 @@ appsettings.Development.json
 ## Diagnostic & Crash Logs
 *.log
 *.crash
+
+## Database
+*.db
+*.db-shm
+*.db-wal
