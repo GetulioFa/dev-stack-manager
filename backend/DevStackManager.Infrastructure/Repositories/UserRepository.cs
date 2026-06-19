@@ -13,6 +13,21 @@ namespace DevStackManager.Infrastructure.Repositories
         public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
             => await context.Users.FirstOrDefaultAsync(u => u.Email == email.ToLowerInvariant(), cancellationToken);
 
+        public async Task<(IEnumerable<User> Items, int TotalCount)> GetPagedAsync(
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+        {
+            var query = context.Users.AsNoTracking().OrderBy(u => u.Name);
+            var totalCount = await query.CountAsync(cancellationToken);
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+
+            return (items, totalCount);
+        }
+
         public async Task AddAsync(User user, CancellationToken cancellationToken = default)
             => await context.Users.AddAsync(user, cancellationToken);
 

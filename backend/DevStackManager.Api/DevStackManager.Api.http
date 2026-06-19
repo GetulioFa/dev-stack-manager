@@ -1,6 +1,0 @@
-@DevStackManager.Api_HostAddress = http://localhost:5222
-
-GET {{DevStackManager.Api_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
