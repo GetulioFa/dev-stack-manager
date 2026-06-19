@@ -1,15 +1,17 @@
 
+using DevStackManager.Application.Common;
+using DevStackManager.Application.Users.Validators;
 using DevStackManager.Domain.Interfaces;
 using DevStackManager.Infrastructure.Data;
 using DevStackManager.Infrastructure.Repositories;
 using DevStackManager.Infrastructure.Services;
+using FluentValidation;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Reflection.Metadata;
-using System.Text;
-using System.Xml.Linq;
 using Scalar.AspNetCore;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +35,10 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 // MediatR
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(
     typeof(DevStackManager.Application.Users.Commands.RegisterUserCommand).Assembly));
+
+// FluentValidation
+builder.Services.AddValidatorsFromAssemblyContaining<RegisterUserCommandValidator>();
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationPipelineBehavior<,>));
 
 // JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
