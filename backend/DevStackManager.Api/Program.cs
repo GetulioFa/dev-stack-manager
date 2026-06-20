@@ -28,9 +28,15 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Domain / Infrastructure Services
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AppDbContext>());
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IStateRepository, StateRepository>();
+builder.Services.AddScoped<ICityRepository, CityRepository>();
+builder.Services.AddScoped<ILanguageRepository, LanguageRepository>();
+builder.Services.AddScoped<IDeveloperRepository, DeveloperRepository>();
+
+// Shared Infrastructure
+builder.Services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AppDbContext>());
 
 // MediatR
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(
@@ -38,6 +44,9 @@ builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(
 
 // FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterUserCommandValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateDeveloperCommandValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateStateCommandValidator>();
+
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationPipelineBehavior<,>));
 
 // JWT Authentication
