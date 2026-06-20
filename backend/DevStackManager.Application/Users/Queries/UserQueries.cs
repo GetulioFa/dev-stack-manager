@@ -7,6 +7,8 @@ namespace DevStackManager.Application.Users.Queries;
 
 public record GetUserByIdQuery(Guid Id) : IRequest<Result<UserDto>>;
 
+public record GetUserByEmailQuery(string Email): IRequest<Result<UserDto>>;
+
 public sealed class GetUserByIdQueryHandler(IUserRepository userRepository)
     : IRequestHandler<GetUserByIdQuery, Result<UserDto>>
 {

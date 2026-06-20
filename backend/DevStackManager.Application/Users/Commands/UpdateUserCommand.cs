@@ -6,7 +6,7 @@ using MediatR;
 namespace DevStackManager.Application.Users.Commands;
 
 public record UpdateUserCommand(
-    Guid Id,
+    string CurrentEmail,
     string Name,
     string Email
 ) : IRequest<Result<UserDto>>;
@@ -20,12 +20,12 @@ public sealed class UpdateUserCommandHandler(
         UpdateUserCommand request,
         CancellationToken cancellationToken)
     {
-        var user = await userRepository.GetByIdAsync(request.Id, cancellationToken);
+        var user = await userRepository.GetByEmailAsync(request.CurrentEmail, cancellationToken);
         if (user is null)
             return Result<UserDto>.Failure("Usuário não encontrado.");
 
         var emailOwner = await userRepository.GetByEmailAsync(request.Email, cancellationToken);
-        if (emailOwner is not null && emailOwner.Id != request.Id)
+        if (emailOwner is not null && emailOwner.Id != user.Id)
             return Result<UserDto>.Failure("Já existe um usuário cadastrado com este e-mail.");
 
         var updateResult = user.Update(request.Name, request.Email);

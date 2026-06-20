@@ -4,7 +4,7 @@ using MediatR;
 
 namespace DevStackManager.Application.Users.Commands;
 
-public record DeleteUserCommand(Guid Id) : IRequest<Result>;
+public record DeleteUserCommand(string Email) : IRequest<Result>;
 
 public sealed class DeleteUserCommandHandler(
     IUserRepository userRepository,
@@ -15,7 +15,7 @@ public sealed class DeleteUserCommandHandler(
         DeleteUserCommand request,
         CancellationToken cancellationToken)
     {
-        var user = await userRepository.GetByIdAsync(request.Id, cancellationToken);
+        var user = await userRepository.GetByEmailAsync(request.Email, cancellationToken);
         if (user is null)
             return Result.Failure("Usuário não encontrado.");
 

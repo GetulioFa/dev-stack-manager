@@ -21,8 +21,9 @@ public sealed class UsersController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> Register([FromBody] RegisterUserCommand command, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(command, cancellationToken);
+
         return result.IsSuccess 
-            ? CreatedAtAction(nameof(GetById), new { id = result.Value.Id }, result.Value) 
+            ? CreatedAtAction(nameof(GetByEmail), new { email = result.Value.Email }, result.Value) 
             : Problem(result.Error!, statusCode: StatusCodes.Status409Conflict);
     }
 
@@ -36,19 +37,21 @@ public sealed class UsersController(IMediator mediator) : ControllerBase
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(command, cancellationToken);
+
         return result.IsSuccess
             ? Ok(result.Value)
             : Problem(result.Error!, statusCode: StatusCodes.Status401Unauthorized);
     }
 
-    // GET api/users/{id}
-    [HttpGet("{id:guid}")]
+    // GET api/users/{email}
+    [HttpGet("{email}")]
     [Authorize]
     [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetByEmail(string email, CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new GetUserByIdQuery(id), cancellationToken);
+        var result = await mediator.Send(new GetUserByEmailQuery(email), cancellationToken);
+
         return result.IsSuccess
             ? Ok(result.Value)
             : Problem(result.Error!, statusCode: StatusCodes.Status404NotFound);
@@ -64,36 +67,39 @@ public sealed class UsersController(IMediator mediator) : ControllerBase
         CancellationToken cancellationToken = default)
     {
         var result = await mediator.Send(new ListUsersQuery(page, pageSize), cancellationToken);
+
         return Ok(result.Value);
     }
 
-    // PUT api/users/{id}
-    [HttpPut("{id:guid}")]
+    // PUT api/users/{email}
+    [HttpPut("{email}")]
     [Authorize]
     [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Update(
-        Guid id,
+        string email,
         [FromBody] UpdateUserRequest request,
         CancellationToken cancellationToken)
     {
-        var command = new UpdateUserCommand(id, request.Name, request.Email);
+        var command = new UpdateUserCommand(email, request.Name, request.Email);
         var result = await mediator.Send(command, cancellationToken);
+
         return result.IsSuccess
             ? Ok(result.Value)
             : Problem(result.Error!, statusCode: StatusCodes.Status409Conflict);
     }
 
-    // DELETE api/users/{id}
-    [HttpDelete("{id:guid}")]
+    // DELETE api/users/{email}
+    [HttpDelete("{email}")]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete(string email, CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new DeleteUserCommand(id), cancellationToken);
+        var result = await mediator.Send(new DeleteUserCommand(email), cancellationToken);
+
         return result.IsSuccess
             ? NoContent()
             : Problem(result.Error!, statusCode: StatusCodes.Status404NotFound);

@@ -43,9 +43,6 @@ public sealed class UpdateUserCommandValidator : AbstractValidator<UpdateUserCom
 {
     public UpdateUserCommandValidator()
     {
-        RuleFor(x => x.Id)
-            .NotEmpty().WithMessage("O ID do usuário é obrigatório.");
-
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("O nome é obrigatório.")
             .MaximumLength(150).WithMessage("O nome deve ter no máximo 150 caracteres.");
@@ -61,7 +58,8 @@ public sealed class DeleteUserCommandValidator : AbstractValidator<DeleteUserCom
 {
     public DeleteUserCommandValidator()
     {
-        RuleFor(x => x.Id)
-            .NotEmpty().WithMessage("O ID do usuário é obrigatório.");
+        RuleFor(x => x.Email)
+            .NotEmpty().WithMessage("O e-mail é obrigatório.")
+            .EmailAddress().WithMessage("Informe um e-mail válido.");
     }
 }
