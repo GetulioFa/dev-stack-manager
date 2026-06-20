@@ -1,6 +1,5 @@
 ﻿using DevStackManager.Domain.Entities;
 using DevStackManager.Domain.Interfaces;
-using DevStackManager.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace DevStackManager.Infrastructure.Data
@@ -18,6 +17,9 @@ namespace DevStackManager.Infrastructure.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<DeveloperLanguage>()
+            .HasKey(dl => new { dl.DeveloperId, dl.ProgrammingLanguageId });
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
             

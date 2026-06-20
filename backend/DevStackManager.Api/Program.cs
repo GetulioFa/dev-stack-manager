@@ -1,5 +1,7 @@
 
 using DevStackManager.Application.Common;
+using DevStackManager.Application.Developers.Validators;
+using DevStackManager.Application.States.Validators;
 using DevStackManager.Application.Users.Validators;
 using DevStackManager.Domain.Interfaces;
 using DevStackManager.Infrastructure.Data;
@@ -144,7 +146,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// ─── Global Exception Handler for FluentValidation ──────────────────────────
 app.Use(async (context, next) =>
 {
     try
