@@ -10,7 +10,6 @@ using MediatR;
 namespace DevStackManager.Application.Developers.Commands;
 
 public record UpdateDeveloperCommand(
-    Guid Id,
     string Name,
     string Email,
     Seniority Seniority,
@@ -32,7 +31,7 @@ public sealed class UpdateDeveloperCommandHandler(
             return Result<DeveloperDto>.Failure("Desenvolvedor não encontrado.");
 
         var emailOwner = await developerRepository.GetByEmailAsync(request.Email, cancellationToken);
-        if (emailOwner is not null && emailOwner.Id != request.Id)
+        if (emailOwner is not null && emailOwner.Id != developer.Id)
             return Result<DeveloperDto>.Failure("Já existe um desenvolvedor cadastrado com este e-mail.");
 
         var city = await cityRepository.GetByIdAsync(request.CityId, cancellationToken);

@@ -18,7 +18,31 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // Controllers
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(opts =>
+    {
+        // FIX #5: serializar JSON em camelCase para o Angular consumir corretamente
+        opts.JsonSerializerOptions.PropertyNamingPolicy =
+            System.Text.Json.JsonNamingPolicy.CamelCase;
+        opts.JsonSerializerOptions.DefaultIgnoreCondition =
+            System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+    });
+
+// ─── CORS — permite chamadas do Angular dev server (porta 4200) ───────────────
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? ["http://localhost:4200"];
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+        policy
+            .WithOrigins(allowedOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .WithExposedHeaders("Location")   // expõe o header 201 Created Location
+    );
+});
 
 // Database: SQLite + EF Core
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -74,6 +98,23 @@ builder.Services
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
             ClockSkew = TimeSpan.Zero
         };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnChallenge = async ctx =>
+            {
+                ctx.HandleResponse();
+                ctx.Response.StatusCode = 401;
+                ctx.Response.ContentType = "application/problem+json";
+                await ctx.Response.WriteAsJsonAsync(new
+                {
+                    type = "https://tools.ietf.org/html/rfc7235",
+                    title = "Não autorizado",
+                    status = 401,
+                    detail = "Token ausente ou inválido."
+                });
+            }
+        };
     });
 
 builder.Services.AddAuthorization();
@@ -126,7 +167,44 @@ using (var scope = app.Services.CreateScope())
     await db.Database.MigrateAsync();
 }
 
+// Global Exception Handler
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next(context);
+    }
+    catch (FluentValidation.ValidationException ex)
+    {
+        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+        context.Response.ContentType = "application/problem+json";
+        var errors = ex.Errors.Select(e => new { field = e.PropertyName, message = e.ErrorMessage });
+        await context.Response.WriteAsJsonAsync(new
+        {
+            type = "https://tools.ietf.org/html/rfc7807",
+            title = "Erro de validação",
+            status = 400,
+            errors
+        });
+    }
+    catch (Exception ex)
+    {
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/problem+json";
+        var detail = app.Environment.IsDevelopment() ? ex.ToString() : "Erro interno no servidor.";
+        await context.Response.WriteAsJsonAsync(new
+        {
+            type = "https://tools.ietf.org/html/rfc7807",
+            title = "Erro interno",
+            status = 500,
+            detail
+        });
+    }
+});
+
 // Middleware Pipeline
+app.UseCors("Frontend");
+
 if (app.Environment.IsDevelopment())
 {
     // Native .NET 10 OpenAPI endpoint
@@ -141,7 +219,11 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

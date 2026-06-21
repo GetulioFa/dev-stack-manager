@@ -32,7 +32,7 @@ public sealed class CreateDeveloperCommandValidator : AbstractValidator<CreateDe
     {
         public UpdateDeveloperCommandValidator()
         {
-            RuleFor(x => x.Id).NotEmpty().WithMessage("O ID do desenvolvedor é obrigatório.");
+            //RuleFor(x => x.Id).NotEmpty().WithMessage("O ID do desenvolvedor é obrigatório.");
 
             RuleFor(x => x.Name)
                 .NotEmpty().WithMessage("O nome do desenvolvedor é obrigatório.")
