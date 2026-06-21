@@ -58,3 +58,7 @@ appsettings.Development.json
 *.db
 *.db-shm
 *.db-wal
+
+**/node_modules/
+**/dist/
+**/.angular/
