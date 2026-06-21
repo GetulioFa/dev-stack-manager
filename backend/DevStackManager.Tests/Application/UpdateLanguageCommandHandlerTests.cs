@@ -3,12 +3,7 @@ using DevStackManager.Domain.Entities;
 using DevStackManager.Domain.Enums;
 using DevStackManager.Domain.Interfaces;
 using FluentAssertions;
-using global::DevStackManager.Application.Languages.Commands;
-using global::DevStackManager.Domain.Entities;
-using global::DevStackManager.Domain.Enums;
-using global::DevStackManager.Domain.Interfaces;
 using Moq;
-using Xunit;
 
 namespace DevStackManager.Tests.Application;
 
