@@ -72,3 +72,5 @@ public sealed class CitiesController(IMediator mediator) : ControllerBase
             : Problem(result.Error!, statusCode: StatusCodes.Status404NotFound);
     }
 }
+
+public record UpdateCityRequest(string Name, Guid StateId);

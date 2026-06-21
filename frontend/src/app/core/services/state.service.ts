@@ -36,7 +36,7 @@ export class StateService {
     );
   }
 
-  delete(email: string): Observable<void> {
-    return this.http.delete<void>(this._base, { body: { email } });
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this._base}/${id}`);
   }
 }
