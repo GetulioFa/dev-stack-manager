@@ -1,5 +1,6 @@
 ﻿using DevStackManager.Domain.Entities;
 using DevStackManager.Domain.Interfaces;
+using DevStackManager.Infrastructure.Data.Seed;
 using Microsoft.EntityFrameworkCore;
 
 namespace DevStackManager.Infrastructure.Data
@@ -19,12 +20,17 @@ namespace DevStackManager.Infrastructure.Data
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<DeveloperLanguage>()
-            .HasKey(dl => new { dl.DeveloperId, dl.ProgrammingLanguageId });
+                .HasKey(dl => new { dl.DeveloperId, dl.ProgrammingLanguageId });
+
+            modelBuilder.Entity<DeveloperLanguage>()
+                .HasOne(dl => dl.Developer)
+                .WithMany(d => d.DeveloperLanguage)
+                .HasForeignKey(dl => dl.DeveloperId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
-            
-            // Pendente - Criar arquivo
-            //DataSeeder.Seed(modelBuilder);
+
+            DataSeeder.Seed(modelBuilder);
         }
         
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
