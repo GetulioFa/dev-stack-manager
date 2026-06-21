@@ -3,10 +3,15 @@
   <ItemGroup>
     <PackageReference Include="FluentValidation" Version="12.1.1" />
     <PackageReference Include="MediatR" Version="14.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.11" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\DevStackManager.Domain\DevStackManager.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Cities\Validators\" />
   </ItemGroup>
 
   <PropertyGroup>
