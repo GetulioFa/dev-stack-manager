@@ -32,6 +32,12 @@ export const appRoutes: Routes = [
           import('./features/locations/location.routes').then(m => m.LOCATION_ROUTES),
       },
       // Default redirect inside the shell
+      {
+        path: 'profile',
+        loadComponent: () =>
+          import('./features/profile/profile.component').then(m => m.ProfileComponent),
+        title: 'Meu Perfil — DevStackManager',
+      },
       { path: '', redirectTo: 'developers', pathMatch: 'full' },
     ],
   },

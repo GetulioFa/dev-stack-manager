@@ -9,7 +9,6 @@ using MediatR;
 namespace DevStackManager.Application.Developers.Commands;
 
 public record CreateDeveloperCommand(
-    Guid Id,
     string Name,
     string Email,
     Seniority Seniority,
