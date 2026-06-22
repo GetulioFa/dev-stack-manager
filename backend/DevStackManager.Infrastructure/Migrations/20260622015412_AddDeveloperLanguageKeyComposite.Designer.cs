@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DevStackManager.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260621002128_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260622015412_AddDeveloperLanguageKeyComposite")]
+    partial class AddDeveloperLanguageKeyComposite
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
