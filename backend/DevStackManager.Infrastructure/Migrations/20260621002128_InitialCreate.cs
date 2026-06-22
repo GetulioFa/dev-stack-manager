@@ -199,28 +199,6 @@ namespace DevStackManager.Infrastructure.Migrations
                     { new Guid("22222222-0000-0000-0000-000000000010"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "Goiânia", new Guid("11111111-0000-0000-0000-000000000010"), null }
                 });
 
-            migrationBuilder.InsertData(
-                table: "Developers",
-                columns: new[] { "Id", "CityId", "CreatedAt", "DeletedAt", "Email", "Name", "Seniority", "UpdatedAt" },
-                values: new object[,]
-                {
-                    { new Guid("55555555-0000-0000-0000-000000000001"), new Guid("22222222-0000-0000-0000-000000000001"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "lucas.almeida@email.com", "Lucas Almeida", 2, null },
-                    { new Guid("55555555-0000-0000-0000-000000000002"), new Guid("22222222-0000-0000-0000-000000000002"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "camila.rocha@email.com", "Camila Rocha", 3, null },
-                    { new Guid("55555555-0000-0000-0000-000000000003"), new Guid("22222222-0000-0000-0000-000000000003"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "felipe.santos@email.com", "Felipe Santos", 1, null },
-                    { new Guid("55555555-0000-0000-0000-000000000004"), new Guid("22222222-0000-0000-0000-000000000004"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "juliana.costa@email.com", "Juliana Costa", 2, null },
-                    { new Guid("55555555-0000-0000-0000-000000000005"), new Guid("22222222-0000-0000-0000-000000000005"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "rafael.lima@email.com", "Rafael Lima", 3, null },
-                    { new Guid("55555555-0000-0000-0000-000000000006"), new Guid("22222222-0000-0000-0000-000000000006"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "amanda.castro@email.com", "Amanda Castro", 1, null },
-                    { new Guid("55555555-0000-0000-0000-000000000007"), new Guid("22222222-0000-0000-0000-000000000007"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "diego.fernandes@email.com", "Diego Fernandes", 2, null },
-                    { new Guid("55555555-0000-0000-0000-000000000008"), new Guid("22222222-0000-0000-0000-000000000008"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "beatriz.sousa@email.com", "Beatriz Sousa", 3, null },
-                    { new Guid("55555555-0000-0000-0000-000000000009"), new Guid("22222222-0000-0000-0000-000000000009"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "thiago.oliveira@email.com", "Thiago Oliveira", 1, null },
-                    { new Guid("55555555-0000-0000-0000-000000000010"), new Guid("22222222-0000-0000-0000-000000000010"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "mariana.silva@email.com", "Mariana Silva", 2, null },
-                    { new Guid("55555555-0000-0000-0000-000000000011"), new Guid("22222222-0000-0000-0000-000000000001"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "bruno.pereira@email.com", "Bruno Pereira", 3, null },
-                    { new Guid("55555555-0000-0000-0000-000000000012"), new Guid("22222222-0000-0000-0000-000000000002"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "larissa.gomes@email.com", "Larissa Gomes", 2, null },
-                    { new Guid("55555555-0000-0000-0000-000000000013"), new Guid("22222222-0000-0000-0000-000000000003"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "gabriel.martins@email.com", "Gabriel Martins", 1, null },
-                    { new Guid("55555555-0000-0000-0000-000000000014"), new Guid("22222222-0000-0000-0000-000000000004"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "leticia.ribeiro@email.com", "Letícia Ribeiro", 3, null },
-                    { new Guid("55555555-0000-0000-0000-000000000015"), new Guid("22222222-0000-0000-0000-000000000005"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "marcelo.dias@email.com", "Marcelo Dias", 2, null }
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_Cities_StateId",
                 table: "Cities",
