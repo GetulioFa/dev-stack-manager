@@ -1,5 +1,5 @@
 import {
-  Component, OnInit, computed, effect, inject, signal,
+  Component, OnInit, computed, inject, signal,
 } from '@angular/core';
 import {
   FormBuilder, ReactiveFormsModule, Validators, FormArray, AbstractControl,
@@ -247,17 +247,21 @@ export class DeveloperFormComponent implements OnInit {
     return this.langSvc.languages().filter(l => ids.includes(l.id));
   });
 
-  constructor() {
-    
-    // Effect: mudou stateId, recarrega as cidades e limpa o cityId
-    effect(() => {
-      const stateId = this.form.controls.stateId.value;
+  ngOnInit(): void {
+    const id = this.route.snapshot.paramMap.get('id');
+
+    // Escuta as mudanças do dropdown de Estado
+    this.form.controls.stateId.valueChanges.subscribe(stateId => {
+      // Limpa a cidade selecionada sempre que o estado mudar
+      this.form.controls.cityId.setValue('');
+      
       if (!stateId) {
         this._citiesForState.set([]);
-        this.form.controls.cityId.setValue('');
         return;
       }
+
       this.loadingCities.set(true);
+      // Dispara a busca de cidades pelo stateId
       this.citySvc.loadByState(stateId).subscribe({
         next: r => {
           this._citiesForState.set(r.items);
@@ -266,10 +270,6 @@ export class DeveloperFormComponent implements OnInit {
         error: () => this.loadingCities.set(false),
       });
     });
-  }
-
-  ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
 
     // Pre-load reference data
     const refDone = { states: false, langs: false };
