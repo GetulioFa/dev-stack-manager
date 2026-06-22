@@ -23,12 +23,12 @@ public static class DataSeeder
     {
         SeedStatesAndCities(modelBuilder);
         SeedLanguages(modelBuilder);
-        SeedUsers(modelBuilder); // <-- Chamada para o seed de utilizadores adicionada aqui
+        SeedUsers(modelBuilder);
+        SeedDevelopers(modelBuilder); // <-- Chamada para o seed de desenvolvedores adicionada aqui
     }
 
     private static void SeedStatesAndCities(ModelBuilder modelBuilder)
     {
-        // Exatamente 10 Estados
         var states = new[]
         {
             CreateState(SpId, "São Paulo", "SP"),
@@ -45,7 +45,6 @@ public static class DataSeeder
 
         modelBuilder.Entity<State>().HasData(states);
 
-        // Exatamente 10 Cidades (1 para cada Estado)
         var cities = new[]
         {
             CreateCity(new("22222222-0000-0000-0000-000000000001"), "São Paulo", SpId),
@@ -65,7 +64,6 @@ public static class DataSeeder
 
     private static void SeedLanguages(ModelBuilder modelBuilder)
     {
-        // Exatamente 10 Linguagens variando os tipos
         var languages = new[]
         {
             CreateLanguage(new("33333333-0000-0000-0000-000000000001"), "C#", LanguageType.BackEnd),
@@ -85,7 +83,6 @@ public static class DataSeeder
 
     private static void SeedUsers(ModelBuilder modelBuilder)
     {
-        // 3 Registos para a tabela Users com todos os campos de auditoria
         var users = new[]
         {
             CreateUser(new("44444444-0000-0000-0000-000000000001"), "Admin Geral", "admin@devstack.com", "PasswordHashAquiAdmin"),
@@ -94,6 +91,31 @@ public static class DataSeeder
         };
 
         modelBuilder.Entity<User>().HasData(users);
+    }
+
+    private static void SeedDevelopers(ModelBuilder modelBuilder)
+    {
+        // 15 Registos de desenvolvedores distribuídos pelas cidades cadastradas
+        var developers = new[]
+        {
+            CreateDeveloper(new("55555555-0000-0000-0000-000000000001"), "Lucas Almeida", "lucas.almeida@email.com", Seniority.Pleno, new("22222222-0000-0000-0000-000000000001")), // SP
+            CreateDeveloper(new("55555555-0000-0000-0000-000000000002"), "Camila Rocha", "camila.rocha@email.com", Seniority.Senior, new("22222222-0000-0000-0000-000000000002")), // RJ
+            CreateDeveloper(new("55555555-0000-0000-0000-000000000003"), "Felipe Santos", "felipe.santos@email.com", Seniority.Junior, new("22222222-0000-0000-0000-000000000003")), // MG
+            CreateDeveloper(new("55555555-0000-0000-0000-000000000004"), "Juliana Costa", "juliana.costa@email.com", Seniority.Pleno, new("22222222-0000-0000-0000-000000000004")), // BA
+            CreateDeveloper(new("55555555-0000-0000-0000-000000000005"), "Rafael Lima", "rafael.lima@email.com", Seniority.Senior, new("22222222-0000-0000-0000-000000000005")), // RS
+            CreateDeveloper(new("55555555-0000-0000-0000-000000000006"), "Amanda Castro", "amanda.castro@email.com", Seniority.Junior, new("22222222-0000-0000-0000-000000000006")), // PR
+            CreateDeveloper(new("55555555-0000-0000-0000-000000000007"), "Diego Fernandes", "diego.fernandes@email.com", Seniority.Pleno, new("22222222-0000-0000-0000-000000000007")), // SC
+            CreateDeveloper(new("55555555-0000-0000-0000-000000000008"), "Beatriz Sousa", "beatriz.sousa@email.com", Seniority.Senior, new("22222222-0000-0000-0000-000000000008")), // PE
+            CreateDeveloper(new("55555555-0000-0000-0000-000000000009"), "Thiago Oliveira", "thiago.oliveira@email.com", Seniority.Junior, new("22222222-0000-0000-0000-000000000009")), // CE
+            CreateDeveloper(new("55555555-0000-0000-0000-000000000010"), "Mariana Silva", "mariana.silva@email.com", Seniority.Pleno, new("22222222-0000-0000-0000-000000000010")), // GO
+            CreateDeveloper(new("55555555-0000-0000-0000-000000000011"), "Bruno Pereira", "bruno.pereira@email.com", Seniority.Senior, new("22222222-0000-0000-0000-000000000001")), // SP
+            CreateDeveloper(new("55555555-0000-0000-0000-000000000012"), "Larissa Gomes", "larissa.gomes@email.com", Seniority.Pleno, new("22222222-0000-0000-0000-000000000002")), // RJ
+            CreateDeveloper(new("55555555-0000-0000-0000-000000000013"), "Gabriel Martins", "gabriel.martins@email.com", Seniority.Junior, new("22222222-0000-0000-0000-000000000003")), // MG
+            CreateDeveloper(new("55555555-0000-0000-0000-000000000014"), "Letícia Ribeiro", "leticia.ribeiro@email.com", Seniority.Senior, new("22222222-0000-0000-0000-000000000004")), // BA
+            CreateDeveloper(new("55555555-0000-0000-0000-000000000015"), "Marcelo Dias", "marcelo.dias@email.com", Seniority.Pleno, new("22222222-0000-0000-0000-000000000005"))  // RS
+        };
+
+        modelBuilder.Entity<Developer>().HasData(developers);
     }
 
     // Bypass private constructors via object initializers (EF Seed pattern)
@@ -136,6 +158,19 @@ public static class DataSeeder
         Name = name,
         Email = email,
         PasswordHash = passwordHash,
+        CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+        UpdatedAt = (DateTime?)null,
+        IsDeleted = false,
+        DeletedAt = (DateTime?)null
+    };
+
+    private static object CreateDeveloper(Guid id, string name, string email, Seniority seniority, Guid cityId) => new
+    {
+        Id = id,
+        Name = name,
+        Email = email,
+        Seniority = seniority,
+        CityId = cityId,
         CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
         UpdatedAt = (DateTime?)null,
         IsDeleted = false,

@@ -178,6 +178,158 @@ namespace DevStackManager.Infrastructure.Migrations
                         .HasDatabaseName("IX_Developers_Email");
 
                     b.ToTable("Developers", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("55555555-0000-0000-0000-000000000001"),
+                            CityId = new Guid("22222222-0000-0000-0000-000000000001"),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "lucas.almeida@email.com",
+                            IsDeleted = false,
+                            Name = "Lucas Almeida",
+                            Seniority = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("55555555-0000-0000-0000-000000000002"),
+                            CityId = new Guid("22222222-0000-0000-0000-000000000002"),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "camila.rocha@email.com",
+                            IsDeleted = false,
+                            Name = "Camila Rocha",
+                            Seniority = 3
+                        },
+                        new
+                        {
+                            Id = new Guid("55555555-0000-0000-0000-000000000003"),
+                            CityId = new Guid("22222222-0000-0000-0000-000000000003"),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "felipe.santos@email.com",
+                            IsDeleted = false,
+                            Name = "Felipe Santos",
+                            Seniority = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("55555555-0000-0000-0000-000000000004"),
+                            CityId = new Guid("22222222-0000-0000-0000-000000000004"),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "juliana.costa@email.com",
+                            IsDeleted = false,
+                            Name = "Juliana Costa",
+                            Seniority = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("55555555-0000-0000-0000-000000000005"),
+                            CityId = new Guid("22222222-0000-0000-0000-000000000005"),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "rafael.lima@email.com",
+                            IsDeleted = false,
+                            Name = "Rafael Lima",
+                            Seniority = 3
+                        },
+                        new
+                        {
+                            Id = new Guid("55555555-0000-0000-0000-000000000006"),
+                            CityId = new Guid("22222222-0000-0000-0000-000000000006"),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "amanda.castro@email.com",
+                            IsDeleted = false,
+                            Name = "Amanda Castro",
+                            Seniority = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("55555555-0000-0000-0000-000000000007"),
+                            CityId = new Guid("22222222-0000-0000-0000-000000000007"),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "diego.fernandes@email.com",
+                            IsDeleted = false,
+                            Name = "Diego Fernandes",
+                            Seniority = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("55555555-0000-0000-0000-000000000008"),
+                            CityId = new Guid("22222222-0000-0000-0000-000000000008"),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "beatriz.sousa@email.com",
+                            IsDeleted = false,
+                            Name = "Beatriz Sousa",
+                            Seniority = 3
+                        },
+                        new
+                        {
+                            Id = new Guid("55555555-0000-0000-0000-000000000009"),
+                            CityId = new Guid("22222222-0000-0000-0000-000000000009"),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "thiago.oliveira@email.com",
+                            IsDeleted = false,
+                            Name = "Thiago Oliveira",
+                            Seniority = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("55555555-0000-0000-0000-000000000010"),
+                            CityId = new Guid("22222222-0000-0000-0000-000000000010"),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "mariana.silva@email.com",
+                            IsDeleted = false,
+                            Name = "Mariana Silva",
+                            Seniority = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("55555555-0000-0000-0000-000000000011"),
+                            CityId = new Guid("22222222-0000-0000-0000-000000000001"),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "bruno.pereira@email.com",
+                            IsDeleted = false,
+                            Name = "Bruno Pereira",
+                            Seniority = 3
+                        },
+                        new
+                        {
+                            Id = new Guid("55555555-0000-0000-0000-000000000012"),
+                            CityId = new Guid("22222222-0000-0000-0000-000000000002"),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "larissa.gomes@email.com",
+                            IsDeleted = false,
+                            Name = "Larissa Gomes",
+                            Seniority = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("55555555-0000-0000-0000-000000000013"),
+                            CityId = new Guid("22222222-0000-0000-0000-000000000003"),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "gabriel.martins@email.com",
+                            IsDeleted = false,
+                            Name = "Gabriel Martins",
+                            Seniority = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("55555555-0000-0000-0000-000000000014"),
+                            CityId = new Guid("22222222-0000-0000-0000-000000000004"),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "leticia.ribeiro@email.com",
+                            IsDeleted = false,
+                            Name = "Letícia Ribeiro",
+                            Seniority = 3
+                        },
+                        new
+                        {
+                            Id = new Guid("55555555-0000-0000-0000-000000000015"),
+                            CityId = new Guid("22222222-0000-0000-0000-000000000005"),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "marcelo.dias@email.com",
+                            IsDeleted = false,
+                            Name = "Marcelo Dias",
+                            Seniority = 2
+                        });
                 });
 
             modelBuilder.Entity("DevStackManager.Domain.Entities.DeveloperLanguage", b =>
