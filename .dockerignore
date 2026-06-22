@@ -1,0 +1,25 @@
+# Build outputs
+**/bin/
+**/obj/
+**/out/
+
+# Local database files
+*.db
+*.db-shm
+*.db-wal
+
+# IDE files
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Tests (already run during Docker build)
+**/DevStackManager.Tests/
+
+# Git
+.git/
+.gitignore
+
+# Docs
+*.md
