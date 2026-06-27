@@ -1,4 +1,3 @@
-
 using DevStackManager.Application.Common;
 using DevStackManager.Application.Developers.Validators;
 using DevStackManager.Application.States.Validators;
@@ -28,10 +27,10 @@ builder.Services.AddControllers()
             System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
     });
 
-// ─── CORS — permite chamadas do Angular dev server (porta 4200) ───────────────
+// ─── CORS — Busca dinamicamente do appsettings.json ou appsettings.Development.json ───
 var allowedOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")
-    .Get<string[]>() ?? ["http://localhost:4200"];
+    .Get<string[]>() ?? ["http://localhost:4200"]; // Fallback padrão caso não encontre no JSON
 
 builder.Services.AddCors(options =>
 {
@@ -131,7 +130,7 @@ builder.Services.AddOpenApi(options =>
             Description = "API para gerenciamento de desenvolvedores"
         };
 
-        // 1. Cria o esquema de segurança JWT Bearer (Sem a propriedade Reference)
+        // 1. Cria o esquema de segurança JWT Bearer
         var securityScheme = new Microsoft.OpenApi.OpenApiSecurityScheme
         {
             Type = Microsoft.OpenApi.SecuritySchemeType.Http,
@@ -140,10 +139,10 @@ builder.Services.AddOpenApi(options =>
             Description = "Insira o token JWT. Exemplo: eyJhbGci..."
         };
 
-        // 2. Adiciona o esquema aos componentes usando o novo método nativo do .NET 10
+        // 2. Adiciona o esquema aos componentes usando o método nativo do .NET 10
         document.AddComponent("Bearer", securityScheme);
 
-        // 3. Cria o requisito de segurança usando a nova classe de referência do .NET 10
+        // 3. Cria o requisito de segurança usando a classe de referência do .NET 10
         var requirement = new Microsoft.OpenApi.OpenApiSecurityRequirement
         {
             [new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer", document)] = new List<string>()
@@ -167,7 +166,7 @@ using (var scope = app.Services.CreateScope())
     await db.Database.MigrateAsync();
 }
 
-// Global Exception Handler
+// Global Exception Handler (Captura erros de validação e erros internos)
 app.Use(async (context, next) =>
 {
     try
@@ -227,27 +226,6 @@ if (!app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-
-app.Use(async (context, next) =>
-{
-    try
-    {
-        await next(context);
-    }
-    catch (FluentValidation.ValidationException ex)
-    {
-        context.Response.StatusCode = StatusCodes.Status400BadRequest;
-        context.Response.ContentType = "application/problem+json";
-        var errors = ex.Errors.Select(e => new { field = e.PropertyName, message = e.ErrorMessage });
-        await context.Response.WriteAsJsonAsync(new
-        {
-            type = "https://tools.ietf.org/html/rfc7807",
-            title = "Erro de validação",
-            status = 400,
-            errors
-        });
-    }
-});
 
 await app.RunAsync();
 
