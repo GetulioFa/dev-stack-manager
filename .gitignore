@@ -62,3 +62,12 @@ appsettings.Development.json
 **/node_modules/
 **/dist/
 **/.angular/
+
+# Cache e Build do Next.js
+frontend/next-app/.next/
+
+# Dependências do Node
+frontend/next-app/node_modules/
+
+# Certificados locais 
+frontend/next-app/certificates/
