@@ -27,7 +27,7 @@ public sealed class UpdateDeveloperCommandHandler(
 {
     public async Task<Result<DeveloperDto>> Handle(UpdateDeveloperCommand request, CancellationToken cancellationToken)
     {
-        var developer = await developerRepository.GetByEmailAsync(request.Email, cancellationToken);
+        var developer = await developerRepository.GetByIdAsync(request.id, cancellationToken);
         if (developer is null)
             return Result<DeveloperDto>.Failure("Desenvolvedor não encontrado.");
 
