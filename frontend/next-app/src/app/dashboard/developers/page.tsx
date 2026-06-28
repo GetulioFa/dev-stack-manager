@@ -1,16 +1,21 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
 import { CrudPage } from '@/components/crud/crud-page';
 import { Column } from '@/components/crud/data-table';
-import { useCrud, usePagedCrud } from '@/lib/hooks/use-crud';
-import { developersApi, statesApi, citiesApi, languagesApi, DeveloperFilters } from '@/lib/api/services';
+import { useCrud, handleError } from '@/lib/hooks/use-crud';
+import {
+  developersApi, statesApi, citiesApi, languagesApi,
+  DeveloperFilters, DeveloperPayload,
+} from '@/lib/api/services';
 import { developerSchema, DeveloperFormValues } from '@/lib/schemas';
 import {
   DeveloperDto, StateDto, CityDto, LanguageDto,
-  Seniority, SENIORITY_LABELS, LanguageType, LANGUAGE_TYPE_LABELS,
+  Seniority, SENIORITY_LABELS,
+  LanguageType, LANGUAGE_TYPE_LABELS,
 } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +26,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import { ReportButton } from '@/components/ui/report-button';
 
 // Seniority badge
 
@@ -39,7 +45,7 @@ function SeniorityBadge({ value }: { value: Seniority }) {
   );
 }
 
-// Language type badge (mini)
+// Language type badge
 
 const TYPE_CLS: Record<LanguageType, string> = {
   [LanguageType.FrontEnd]: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300',
@@ -51,95 +57,118 @@ const TYPE_CLS: Record<LanguageType, string> = {
 
 // Developer Form
 
-function DeveloperForm({ item, onClose }: { item: DeveloperDto | null; onClose: () => void }) {
-  const [states,    setStates]    = useState<StateDto[]>([]);
-  const [cities,    setCities]    = useState<CityDto[]>([]);
-  const [languages, setLanguages] = useState<LanguageDto[]>([]);
+function DeveloperForm({ item, onClose, onSaved, allLanguages, allStates }: {
+  item:         DeveloperDto | null;
+  onClose:      () => void;
+  onSaved:      () => void;
+  allLanguages: LanguageDto[];
+  allStates:    StateDto[];
+}) {
+  const [cities,        setCities]        = useState<CityDto[]>([]);
   const [loadingCities, setLoadingCities] = useState(false);
+  const [submitting,    setSubmitting]    = useState(false);
+  
+  const isInitialLoad = useRef(true);
 
-  const crudOptions = useMemo(() => ({
-    listFn: async () => ({ 
-      items: [] as DeveloperDto[], 
-      totalCount: 0, 
-      total: 0, 
-      page: 1, 
-      pageSize: 10, 
-      totalPages: 1 
-    }),
-    
-    deleteFn: async () => {},        
-    createFn: (d: unknown) => { const v = d as DeveloperFormValues; return developersApi.create(v); },
-    updateFn: (id: string, d: unknown) => { const v = d as DeveloperFormValues; return developersApi.update(id, v); },
-    messages: { 
-      created: 'Desenvolvedor criado!', 
-      updated: 'Desenvolvedor atualizado!',
-      deleted: 'Desenvolvedor excluído.' 
+  const {
+    register, handleSubmit, reset, control, watch, setValue,
+    formState: { errors },
+  } = useForm<DeveloperFormValues>({
+    resolver: zodResolver(developerSchema),
+    defaultValues: {
+      name:        '',
+      email:       '',
+      seniority:   '' as unknown as Seniority,
+      stateId:     '',
+      cityId:      '',
+      languageIds: [],
     },
-  }), []);
-
-  const crud = useCrud<DeveloperDto>(crudOptions);
- 
-  const { register, handleSubmit, reset, control, watch, setValue, formState: { errors },
-    } = useForm<DeveloperFormValues>({
-      resolver: zodResolver(developerSchema),
-      defaultValues: {
-        name:        item?.name        ?? '',
-        email:       item?.email       ?? '',
-        seniority:   item?.seniority   ?? ('' as unknown as Seniority),
-        stateId:     '',
-        cityId:      item?.cityId      ?? '',
-        languageIds: item?.languages.map(l => l.id) ?? [],
-      },
   });
 
-  const watchedState = watch('stateId');
+  const watchedStateId = watch('stateId');
+  const watchedLangIds = watch('languageIds');
 
   useEffect(() => {
-    statesApi.list(1, 100).then(r => setStates(r.items));
-    languagesApi.list(1, 100).then(r => setLanguages(r.items));
-  }, []);
-
-  useEffect(() => {
-    if (!item) return;
-    statesApi.list(1, 100).then(r => {
-      const state = r.items.find(s => s.uf === item.stateUF);
-      if (state) {
-        setValue('stateId', state.id);
-        citiesApi.list(1, 200, state.id).then(cr => {
-          setCities(cr.items);
-          setValue('cityId', item.cityId);
-        });
-      }
-    });
-  }, [item, setValue]);
-
-  useEffect(() => {
-    if (!watchedState) { setCities([]); setValue('cityId', ''); return; }
+    if (!watchedStateId) {
+      setCities([]);
+      if (!isInitialLoad.current) setValue('cityId', '');
+      return;
+    }
     setLoadingCities(true);
-    citiesApi.list(1, 200, watchedState).then(r => {
+    citiesApi.list(1, 200, watchedStateId)
+      .then(r => {
+        setCities(r.items);
+        setLoadingCities(false);
+      })
+      .catch(() => setLoadingCities(false));
+  }, [watchedStateId, setValue]);
+
+  useEffect(() => {
+    if (!item) {
+      reset({
+        name: '', email: '',
+        seniority: '' as unknown as Seniority,
+        stateId: '', cityId: '', languageIds: [],
+      });
+      isInitialLoad.current = true;
+      return;
+    }
+
+    const state = allStates.find(s => s.uf === item.stateUF);
+    if (!state) return;
+
+    isInitialLoad.current = true;
+    
+    reset({
+      name:        item.name,
+      email:       item.email,
+      seniority:   item.seniority,
+      stateId:     state.id,
+      cityId:      '',            
+      languageIds: item.languages.map(l => l.id),
+    });
+
+    
+    setLoadingCities(true);
+    citiesApi.list(1, 200, state.id).then(r => {
       setCities(r.items);
       setLoadingCities(false);
-      if (!item) setValue('cityId', '');
+      setValue('cityId', item.cityId, { shouldValidate: false });
+     
+      isInitialLoad.current = false;
     });
-  }, [watchedState]);
+  }, [item, allStates, reset, setValue]);
 
+  // Submit
   const onSubmit = async (values: DeveloperFormValues) => {
-    const payload = {
-      name:        values.name,
-      email:       values.email,
-      seniority:   Number(values.seniority) as Seniority,
-      cityId:      values.cityId,
-      languageIds: values.languageIds,
-    };
-    const result = item
-      ? await crud.update(item.id, payload)
-      : await crud.create(payload);
-    if (result) onClose();
+    setSubmitting(true);
+    try {
+      
+      const payload: DeveloperPayload = {
+        name:        values.name,
+        email:       values.email,
+        seniority:   Number(values.seniority) as Seniority,
+        cityId:      values.cityId,
+        languageIds: values.languageIds,
+      };
+
+      if (item) {
+        await developersApi.update(item.id, payload);
+        toast.success('Desenvolvedor atualizado!');
+      } else {
+        await developersApi.create(payload);
+        toast.success('Desenvolvedor cadastrado!');
+      }
+      onSaved();
+      onClose();
+    } catch (err) {
+      handleError(err, 'Erro ao salvar desenvolvedor.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const watchedLangs = watch('languageIds');
-
-  const langsByType = languages.reduce<Record<string, LanguageDto[]>>((acc, lang) => {
+  const langsByType = allLanguages.reduce<Record<string, LanguageDto[]>>((acc, lang) => {
     const label = LANGUAGE_TYPE_LABELS[lang.type];
     acc[label] = [...(acc[label] ?? []), lang];
     return acc;
@@ -150,14 +179,29 @@ function DeveloperForm({ item, onClose }: { item: DeveloperDto | null; onClose: 
 
       <div className="space-y-1.5">
         <Label htmlFor="d-name">Nome completo</Label>
-        <Input id="d-name" placeholder="Nome do desenvolvedor" {...register('name')} />
-        {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
+        <Input
+          id="d-name"
+          placeholder="Nome do desenvolvedor"
+          {...register('name')}
+          aria-invalid={!!errors.name}
+        />
+        {errors.name && (
+          <p className="text-xs text-destructive" role="alert">{errors.name.message}</p>
+        )}
       </div>
 
       <div className="space-y-1.5">
         <Label htmlFor="d-email">E-mail</Label>
-        <Input id="d-email" type="email" placeholder="dev@email.com" {...register('email')} />
-        {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
+        <Input
+          id="d-email"
+          type="email"
+          placeholder="dev@email.com"
+          {...register('email')}
+          aria-invalid={!!errors.email}
+        />
+        {errors.email && (
+          <p className="text-xs text-destructive" role="alert">{errors.email.message}</p>
+        )}
       </div>
 
       <div className="space-y-1.5">
@@ -170,8 +214,8 @@ function DeveloperForm({ item, onClose }: { item: DeveloperDto | null; onClose: 
               value={field.value ? String(field.value) : ''}
               onValueChange={v => field.onChange(Number(v) as Seniority)}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a senioridade…" />
+              <SelectTrigger aria-invalid={!!errors.seniority}>
+                <SelectValue placeholder="Selecione…" />
               </SelectTrigger>
               <SelectContent>
                 {Object.entries(SENIORITY_LABELS).map(([val, label]) => (
@@ -181,7 +225,9 @@ function DeveloperForm({ item, onClose }: { item: DeveloperDto | null; onClose: 
             </Select>
           )}
         />
-        {errors.seniority && <p className="text-xs text-destructive">{errors.seniority.message}</p>}
+        {errors.seniority && (
+          <p className="text-xs text-destructive" role="alert">{errors.seniority.message}</p>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -191,19 +237,26 @@ function DeveloperForm({ item, onClose }: { item: DeveloperDto | null; onClose: 
             name="stateId"
             control={control}
             render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger>
+              <Select value={field.value} onValueChange={v => {
+                field.onChange(v);
+                if (!isInitialLoad.current) setValue('cityId', '');
+              }}>
+                <SelectTrigger aria-invalid={!!errors.stateId}>
                   <SelectValue placeholder="Estado…" />
                 </SelectTrigger>
                 <SelectContent>
-                  {states.map(s => (
-                    <SelectItem key={s.id} value={s.id}>{s.uf} — {s.name}</SelectItem>
+                  {allStates.map(s => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.uf} — {s.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             )}
           />
-          {errors.stateId && <p className="text-xs text-destructive">{errors.stateId.message}</p>}
+          {errors.stateId && (
+            <p className="text-xs text-destructive" role="alert">{errors.stateId.message}</p>
+          )}
         </div>
 
         <div className="space-y-1.5">
@@ -215,10 +268,12 @@ function DeveloperForm({ item, onClose }: { item: DeveloperDto | null; onClose: 
               <Select
                 value={field.value}
                 onValueChange={field.onChange}
-                disabled={!watchedState || loadingCities}
+                disabled={!watchedStateId || loadingCities}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder={loadingCities ? 'Carregando…' : 'Cidade…'} />
+                <SelectTrigger aria-invalid={!!errors.cityId}>
+                  <SelectValue
+                    placeholder={loadingCities ? 'Carregando…' : 'Cidade…'}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {cities.map(c => (
@@ -228,51 +283,61 @@ function DeveloperForm({ item, onClose }: { item: DeveloperDto | null; onClose: 
               </Select>
             )}
           />
-          {errors.cityId && <p className="text-xs text-destructive">{errors.cityId.message}</p>}
+          {errors.cityId && (
+            <p className="text-xs text-destructive" role="alert">{errors.cityId.message}</p>
+          )}
         </div>
       </div>
 
       <div className="space-y-2">
         <Label>
           Linguagens
-          <span className="ml-1 text-xs text-muted-foreground font-normal">
+          <span className="ml-1.5 text-xs text-muted-foreground font-normal">
             (ao menos uma obrigatória)
           </span>
         </Label>
 
-        <ScrollArea className="h-52 rounded-lg border border-border p-3">
+        <ScrollArea className="h-52 rounded-lg border border-border p-3 bg-muted/20">
           <div className="space-y-4">
             {Object.entries(langsByType).map(([typeLabel, langs]) => (
               <div key={typeLabel}>
                 <p className="text-xs font-semibold text-muted-foreground uppercase
-                               tracking-wider mb-2">{typeLabel}</p>
-                <div className="grid grid-cols-2 gap-1.5">
+                               tracking-wider mb-1.5">{typeLabel}</p>
+                <div className="grid grid-cols-2 gap-1">
                   {langs.map(lang => {
-                    const checked = watchedLangs.includes(lang.id);
+                    const checked = watchedLangIds.includes(lang.id);
                     return (
-                      <label
+                      <Controller
                         key={lang.id}
-                        className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5
-                                    text-sm cursor-pointer transition-colors select-none
-                                    ${checked
-                                      ? 'bg-primary/10 text-primary'
-                                      : 'hover:bg-muted text-foreground'}`}
-                      >
-                        <Controller
-                          name="languageIds"
-                          control={control}
-                          render={({ field }) => (
+                        name="languageIds"
+                        control={control}
+                        render={({ field }) => (
+                          <label
+                            className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5
+                                        text-sm cursor-pointer transition-colors select-none
+                                        ${checked
+                                          ? 'bg-primary/10 text-primary'
+                                          : 'hover:bg-muted text-foreground'}`}
+                          >
                             <Checkbox
                               checked={checked}
                               onCheckedChange={ch => {
-                                if (ch) field.onChange([...field.value, lang.id]);
-                                else    field.onChange(field.value.filter((id: string) => id !== lang.id));
+                                const next = ch
+                                  ? [...field.value, lang.id]
+                                  : field.value.filter((id: string) => id !== lang.id);
+                                field.onChange(next);
                               }}
+                              className="shrink-0"
                             />
-                          )}
-                        />
-                        {lang.name}
-                      </label>
+                            <span className="truncate">{lang.name}</span>
+                            <span className={`ml-auto shrink-0 inline-flex items-center
+                                             rounded-full px-1.5 py-0.5 text-[10px] font-medium
+                                             ${TYPE_CLS[lang.type]}`}>
+                              {LANGUAGE_TYPE_LABELS[lang.type].slice(0, 3)}
+                            </span>
+                          </label>
+                        )}
+                      />
                     );
                   })}
                 </div>
@@ -282,19 +347,30 @@ function DeveloperForm({ item, onClose }: { item: DeveloperDto | null; onClose: 
         </ScrollArea>
 
         {errors.languageIds && (
-          <p className="text-xs text-destructive">{errors.languageIds.message}</p>
+          <p className="text-xs text-destructive" role="alert">
+            {errors.languageIds.message}
+          </p>
         )}
 
-        {watchedLangs.length > 0 && (
+        {watchedLangIds.length > 0 && (
           <div className="flex flex-wrap gap-1.5 pt-1">
-            {watchedLangs.map(id => {
-              const lang = languages.find(l => l.id === id);
+            {watchedLangIds.map(id => {
+              const lang = allLanguages.find(l => l.id === id);
               if (!lang) return null;
               return (
-                <Badge key={id} variant="secondary"
-                       className="gap-1 cursor-pointer hover:bg-destructive/10"
-                       onClick={() => setValue('languageIds', watchedLangs.filter(l => l !== id))}>
-                  {lang.name} ×
+                <Badge
+                  key={id}
+                  variant="secondary"
+                  className="gap-1.5 cursor-pointer hover:bg-destructive/10
+                             hover:text-destructive transition-colors"
+                  onClick={() => setValue(
+                    'languageIds',
+                    watchedLangIds.filter(l => l !== id),
+                    { shouldValidate: true },
+                  )}
+                >
+                  {lang.name}
+                  <span aria-hidden>×</span>
                 </Badge>
               );
             })}
@@ -304,22 +380,28 @@ function DeveloperForm({ item, onClose }: { item: DeveloperDto | null; onClose: 
 
       <div className="flex justify-end gap-3 pt-2">
         <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
-        <Button type="submit" disabled={crud.isSubmitting}>
-          {crud.isSubmitting ? 'Salvando…' : item ? 'Salvar alterações' : 'Cadastrar'}
+        <Button type="submit" disabled={submitting}>
+          {submitting
+            ? <span className="flex items-center gap-2">
+                <span className="h-4 w-4 animate-spin rounded-full border-2
+                                 border-current border-t-transparent" />
+                Salvando…
+              </span>
+            : item ? 'Salvar alterações' : 'Cadastrar'}
         </Button>
       </div>
     </form>
   );
 }
 
-// Columns 
+// Table columns
 
 const COLUMNS: Column<DeveloperDto>[] = [
   {
     key: 'name', header: 'Desenvolvedor',
     cell: r => (
       <div>
-        <p className="font-medium">{r.name}</p>
+        <p className="font-medium text-foreground">{r.name}</p>
         <p className="text-xs text-muted-foreground">{r.email}</p>
       </div>
     ),
@@ -329,52 +411,49 @@ const COLUMNS: Column<DeveloperDto>[] = [
     cell: r => <SeniorityBadge value={r.seniority} />,
   },
   {
-    key: 'languages',
-    header: 'Linguagens',
-    cell: r => (
-      <div className="flex flex-wrap gap-1 max-w-[220px]">
-        {r.languages?.map(lang => (
-          <Badge key={lang.id} variant="secondary" className="text-[10px] font-normal">
-            {lang.name}
-          </Badge>
-        ))}
-      </div>
-    ),
-  },
-  {
     key: 'location', header: 'Localização',
     className: 'hidden md:table-cell text-sm text-muted-foreground',
     cell: r => `${r.cityName}, ${r.stateUF}`,
+  },
+  {
+    key: 'languages', header: 'Linguagens',
+    className: 'hidden lg:table-cell',
+    cell: r => (
+      <div className="flex flex-wrap gap-1">
+        {r.languages.slice(0, 3).map(l => (
+          <Badge key={l.id} variant="outline" className="text-xs font-normal">
+            {l.name}
+          </Badge>
+        ))}
+        {r.languages.length > 3 && (
+          <Badge variant="outline" className="text-xs text-muted-foreground">
+            +{r.languages.length - 3}
+          </Badge>
+        )}
+      </div>
+    ),
   },
 ];
 
 // Page
 
 export default function DevelopersPage() {
-  const [states,    setStates]    = useState<StateDto[]>([]);
-  const [languages, setLanguages] = useState<LanguageDto[]>([]);
+  const [allStates,    setAllStates]    = useState<StateDto[]>([]);
+  const [allLanguages, setAllLanguages] = useState<LanguageDto[]>([]);
 
   useEffect(() => {
-    statesApi.list(1, 100).then(r => setStates(r.items)).catch(() => {});
-    languagesApi.list(1, 100).then(r => setLanguages(r.items)).catch(() => {});
+    statesApi.list(1, 200).then(r => setAllStates(r.items)).catch(() => {});
+    languagesApi.list(1, 200).then(r => setAllLanguages(r.items)).catch(() => {});
   }, []);
 
-  const crudOptions = useMemo(() => ({
-    listFn: (f: DeveloperFilters & { page?: number; pageSize?: number }) =>
-      developersApi.list(f),
-      deleteFn: async (id: unknown) => {
-      await developersApi.delete(id as string);
-    },
-    initialFilters: {
-      page: 1,
-      pageSize: 10,
-    },
-    messages: {
-      deleted: 'Desenvolvedor excluído com sucesso.',
-    },
-  }), []);
+  const [activeFilters, setActiveFilters] = useState<Omit<DeveloperFilters, 'page' | 'pageSize'>>({});
 
-  const crud = usePagedCrud<DeveloperDto, DeveloperFilters>(crudOptions);
+  const crud = useCrud<DeveloperDto, DeveloperFilters & { page: number; pageSize: number }>({
+    listFn:   f => developersApi.list(f),
+    deleteFn: (id: unknown) => developersApi.delete(id as string),
+    messages: { deleted: 'Desenvolvedor excluído.' },
+    initialFilters: { page: 1, pageSize: 10 },
+  });
 
   return (
     <CrudPage
@@ -386,70 +465,73 @@ export default function DevelopersPage() {
       rowKey={r => r.id}
       isLoading={crud.isLoading}
       isSubmitting={crud.isSubmitting}
-      page={crud.filters?.page ?? 1}
-      totalPages={crud.totalPages || 1}
-      totalCount={crud.total ?? 0}
-      onPageChange={p => crud.setFilters({ ...(crud.filters ?? {}), page: p })}
+      page={crud.filters.page ?? 1}
+      totalPages={crud.totalPages}
+      totalCount={crud.total}
+      onPageChange={p => crud.setFilters({ page: p })}
       onDelete={item => crud.remove(item.id)}
-      deleteMessage={item => `Deseja excluir o desenvolvedor "${item.name}"?`}
+      deleteMessage={item =>
+        `Deseja excluir o desenvolvedor "${item.name}"? Esta ação não pode ser desfeita.`
+      }
+      extraHeaderActions={<ReportButton activeFilters={activeFilters} />}
       renderFilters={
         <>
-          <Select 
-            value={crud.filters?.seniority?.toString() ?? 'all'} 
-            onValueChange={v => crud.setFilters({ 
-              ...(crud.filters ?? {}), 
-              seniority: v === 'all' ? undefined : (Number(v) as Seniority) 
-            })}
-          >
+          <Select onValueChange={v => {
+            const seniority = v === '__all' ? undefined : Number(v) as Seniority;
+            crud.setFilters({ seniority });
+            setActiveFilters(prev => ({ ...prev, seniority }));
+          }}>
             <SelectTrigger className="w-44">
               <SelectValue placeholder="Senioridade…" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todas</SelectItem>
+              <SelectItem value="__all">Todas as senioridades</SelectItem>
               {Object.entries(SENIORITY_LABELS).map(([val, label]) => (
                 <SelectItem key={val} value={val}>{label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
-          
-          <Select 
-            value={crud.filters?.languageId ?? 'all'}
-            onValueChange={v => crud.setFilters({ 
-              ...(crud.filters ?? {}), 
-              languageId: v === 'all' ? undefined : v 
-            })}
-          >
+
+          <Select onValueChange={v => {
+            const languageId = v === '__all' ? undefined : v;
+            crud.setFilters({ languageId });
+            setActiveFilters(prev => ({ ...prev, languageId }));
+          }}>
             <SelectTrigger className="w-52">
               <SelectValue placeholder="Linguagem…" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todas as linguagens</SelectItem>
-              {languages.map(l => (
+              <SelectItem value="__all">Todas as linguagens</SelectItem>
+              {allLanguages.map(l => (
                 <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
 
-          <Select 
-            value={crud.filters?.cityId ?? 'all'}
-            onValueChange={v => crud.setFilters({ 
-              ...(crud.filters ?? {}), 
-              cityId: v === 'all' ? undefined : v 
-            })}
-          >
+          <Select onValueChange={v =>
+            crud.setFilters({ cityId: v === '__all' ? undefined : v })
+          }>
             <SelectTrigger className="w-44">
               <SelectValue placeholder="Estado…" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos os estados</SelectItem>
-              {states.map(s => (
+              <SelectItem value="__all">Todos os estados</SelectItem>
+              {allStates.map(s => (
                 <SelectItem key={s.id} value={s.id}>{s.uf} — {s.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </>
       }
-      renderForm={({ item, onClose }) => <DeveloperForm item={item} onClose={onClose} />}
+      renderForm={({ item, onClose }) => (
+        <DeveloperForm
+          item={item}
+          onClose={onClose}
+          onSaved={crud.refresh}
+          allLanguages={allLanguages}
+          allStates={allStates}
+        />
+      )}
       emptyMessage="Nenhum desenvolvedor cadastrado."
     />
   );

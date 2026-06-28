@@ -1,5 +1,4 @@
-// ─── Enums (mirror backend DevStackManager.Domain.Enums) ──────────────────────
-
+// Enums (mirror backend DevStackManager.Domain.Enums)
 export enum LanguageType {
   FrontEnd = 1,
   BackEnd  = 2,
@@ -28,7 +27,7 @@ export const SENIORITY_LABELS: Record<Seniority, string> = {
   [Seniority.Senior]: 'Sênior',
 };
 
-// ─── Auth ─────────────────────────────────────────────────────────────────────
+// Auth
 
 export interface UserDto {
   id: string;
@@ -45,7 +44,7 @@ export interface AuthTokenDto {
   user: UserDto;
 }
 
-// ─── State ────────────────────────────────────────────────────────────────────
+// State
 
 export interface StateDto {
   id: string;
@@ -54,8 +53,7 @@ export interface StateDto {
   createdAt: string;
 }
 
-// ─── City ─────────────────────────────────────────────────────────────────────
-
+// City 
 export interface CityDto {
   id: string;
   name: string;
@@ -65,7 +63,7 @@ export interface CityDto {
   createdAt: string;
 }
 
-// ─── Language ─────────────────────────────────────────────────────────────────
+// Language
 
 export interface LanguageDto {
   id: string;
@@ -75,7 +73,7 @@ export interface LanguageDto {
   createdAt: string;
 }
 
-// ─── Developer ────────────────────────────────────────────────────────────────
+// Developer
 
 export interface DeveloperDto {
   id: string;
@@ -90,7 +88,19 @@ export interface DeveloperDto {
   createdAt: string;
 }
 
-// ─── Shared ───────────────────────────────────────────────────────────────────
+// Developer Export
+
+export interface DeveloperExportDto {
+  name: string;  
+  email: string;  
+  seniority: string;
+  city: string;  
+  state: string;  
+  languages: string;  
+  createdAt: string;
+}
+
+// Shared
 
 export interface PagedResult<T> {
   items: T[];

@@ -27,6 +27,7 @@ interface CrudPageProps<T> {
   totalCount:   number;
   onPageChange: (page: number) => void;
   renderForm:   (opts: { item: T | null; onClose: () => void }) => ReactNode;
+  extraHeaderActions?: ReactNode;
   renderFilters?: ReactNode;
   onDelete:     (item: T) => Promise<boolean>;
   deleteMessage?: (item: T) => string;
@@ -37,7 +38,7 @@ export function CrudPage<T>({
   title, description, createLabel = 'Novo',
   columns, data, rowKey, isLoading, isSubmitting,
   page, totalPages, totalCount, onPageChange,
-  renderForm, renderFilters,
+  renderForm, renderFilters, extraHeaderActions,
   onDelete, deleteMessage, emptyMessage,
 }: CrudPageProps<T>) {
   const [formOpen,    setFormOpen]    = useState(false);
@@ -90,11 +91,14 @@ export function CrudPage<T>({
             <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
           )}
         </div>
-        <Button onClick={() => { setEditItem(null); setFormOpen(true); }}
-                className="gap-2">
-          <Plus className="h-4 w-4" />
-          {createLabel}
-        </Button>
+        <div className="flex items-center gap-2 shrink-0">
+          {extraHeaderActions}
+          <Button onClick={() => { setEditItem(null); setFormOpen(true); }}
+                  className="gap-2">
+            <Plus className="h-4 w-4" />
+            {createLabel}
+          </Button>
+        </div>
       </div>
 
       {renderFilters && (

@@ -1,6 +1,6 @@
 import { api } from './client';
 import {
-  AuthTokenDto, UserDto, StateDto, CityDto, LanguageDto, DeveloperDto,
+  AuthTokenDto, UserDto, StateDto, CityDto, LanguageDto, DeveloperDto, DeveloperExportDto,
   PagedResult, LanguageType, Seniority,
 } from '@/types';
 
@@ -102,6 +102,14 @@ export interface DeveloperFilters {
   [key: string]: unknown;
 }
 
+export interface DeveloperPayload {
+  name:        string;
+  email:       string;
+  seniority:   Seniority; 
+  cityId:      string;
+  languageIds: string[];
+}
+
 export const developersApi = {
   list: (filters: DeveloperFilters = {}) =>
     api.get<PagedResult<DeveloperDto>>('/developers', {
@@ -127,4 +135,11 @@ export const developersApi = {
 
   delete: (id: string) =>
     api.delete<void>(`/developers/${id}`),
+
+  export: (filters: DeveloperFilters = {}) =>
+  api.get<DeveloperExportDto[]>('/developers/export', {
+    seniority:  filters.seniority,
+    cityId:     filters.cityId,
+    languageId: filters.languageId,
+  }),
 };
